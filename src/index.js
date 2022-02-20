@@ -84,7 +84,7 @@ io.on("connect", (socket) => {
     socket.on("disconnect", () => {
       // the user is deleted from array of users and a left channel message displayed
       try {
-        const pUser = userDisconnect(socket.id);
+        const pUser = userDisconnect(socket.id, 'something');
 
         if (pUser) {
           io.to(pUser.channel).emit(`message${pUser.channel}`, {

@@ -5,7 +5,7 @@ function joinUser(id, firstName, lastName, channel) {
   const pUser = {
     id, firstName, lastName, channel,
   };
-  if (!cUsers.some((user) => user.id === id)) {
+  if (!cUsers.some((user) => user.id === id && user.channel !== channel)) {
     cUsers.push(pUser);
     console.log(pUser);
   }
@@ -22,8 +22,8 @@ function getCurrentUser(id, channel) {
 }
 
 // called when the user leaves the chat and its user object deleted from array
-function userDisconnect(id) {
-  const index = cUsers.findIndex((pUser) => pUser.id === id);
+function userDisconnect(id, channel) {
+  const index = cUsers.findIndex((pUser) => pUser.id === id && pUser.channel === channel);
 
   if (index !== -1) {
     return cUsers.splice(index, 1)[0];
