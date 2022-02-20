@@ -44,6 +44,7 @@ io.on('connect', (socket) => {
     }) => {
       //* create user
       const pUser = joinUser(userID, firstName, lastName, channel);
+      console.log(pUser);
       // const allChannelUsers = getUserchannel(channel);
       socket.join(pUser.channel);
       // socket.join(userID);
@@ -69,9 +70,9 @@ io.on('connect', (socket) => {
       // });
     });
     // user sending message
-    socket.on('chat', ({ message, userID }) => {
+    socket.on('chat', ({ message, userID, channel }) => {
       // gets the channel user and the message sent
-      const pUser = getCurrentUser(userID);
+      const pUser = getCurrentUser(userID, channel);
 
       io.to(pUser.channel).emit(`message${pUser.channel}`, {
         userID: pUser.id,

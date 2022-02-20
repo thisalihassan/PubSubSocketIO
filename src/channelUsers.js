@@ -16,8 +16,8 @@ function getUserchannel(channel) {
 }
 
 // Gets a particular user id to return the current user
-function getCurrentUser(id) {
-  return cUsers.find((pUser) => pUser.id === id);
+function getCurrentUser(id, channel) {
+  return cUsers.find((pUser) => pUser.id === id && pUser.channel === channel);
 }
 
 // called when the user leaves the chat and its user object deleted from array
