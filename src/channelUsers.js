@@ -5,7 +5,7 @@ function joinUser(id, firstName, lastName, channel) {
   const pUser = {
     id, firstName, lastName, channel,
   };
-  if (!cUsers.some((user) => user.id === id && user.channel !== channel)) {
+  if (!cUsers.some((user) => user.id === id && user.channel === channel)) {
     cUsers.push(pUser);
     console.log(pUser);
   }
