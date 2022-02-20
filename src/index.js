@@ -1,26 +1,27 @@
-import { Server } from "socket.io";
-import { createServer } from "http";
-import { createAdapter } from "@socket.io/redis-adapter";
-import { createClient } from "redis";
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { createClient } from 'redis';
+
 const {
-  get_Current_User,
-  user_Disconnect,
-  join_User,
-  get_users_channel,
-} = require("./channelUsers");
+  getCurrentUser,
+  userDisconnect,
+  joinUser,
+} = require('./channelUsers');
+
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: '*',
   },
 });
 
-const pubClient = createClient({ url: "redis://3.92.64.201:6379" });
+const pubClient = createClient({ url: 'redis://3.92.64.201:6379' });
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()])
   .then(() => {
-    console.log("Connected");
+    console.log('Connected');
     io.adapter(createAdapter(pubClient, subClient));
     io.listen(8080);
   })
@@ -35,61 +36,62 @@ Promise.all([pubClient.connect(), subClient.connect()])
 //   });
 // }
 
-io.on("connect", (socket) => {
-  //for a new user joining the channel
+io.on('connect', (socket) => {
+  // for a new user joining the channel
   try {
-    console.log(socket.id);
-    socket.on("joinRoom", ({ userID, firstName,lastName, channel }) => {
+    socket.on('joinRoom', ({
+      userID, firstName, lastName, channel,
+    }) => {
       //* create user
-      const p_user = join_User(userID, firstName, lastName, channel);
-      // const allChannelUsers = get_users_channel(channel);
-      socket.join(p_user.channel);
+      const pUser = joinUser(userID, firstName, lastName, channel);
+      // const allChannelUsers = getUserchannel(channel);
+      socket.join(pUser.channel);
       // socket.join(userID);
       // allChannelUsers.forEach(user=>{
       //   io.to(user.id).emit("channelJoined",{
-      //     userID: p_user.id,
+      //     userID: pUser.id,
       //     channel,
       //   })
       // })
 
-      //display a welcome message to the user who have joined a channel
+      // display a welcome message to the user who have joined a channel
       // socket.emit("message", {
-      //   userID: p_user.id,
-      //   firstName: p_user.firstName,
-      //   message: `Welcome ${p_user.firstName}`,
+      //   userID: pUser.id,
+      //   firstName: pUser.firstName,
+      //   message: `Welcome ${pUser.firstName}`,
       // });
 
-      //displays a joined channel message to all other channel users except that particular user
-      // socket.broadcast.to(p_user.channel).emit("message", {
-      //   userID: p_user.id,
-      //   firstName: p_user.firstName,
-      //   message: `${p_user.firstName} has joined the chat`,
+      // displays a joined channel message to all other channel users except that particular user
+      // socket.broadcast.to(pUser.channel).emit("message", {
+      //   userID: pUser.id,
+      //   firstName: pUser.firstName,
+      //   message: `${pUser.firstName} has joined the chat`,
       // });
     });
-    //user sending message
-    socket.on("chat", ({ message, userID }) => {
-      //gets the channel user and the message sent
-      const p_user = get_Current_User(userID);
+    // user sending message
+    socket.on('chat', ({ message, userID }) => {
+      // gets the channel user and the message sent
+      const pUser = getCurrentUser(userID);
 
-      io.to(p_user.channel).emit("message", {
-        userID: p_user.id,
-        firstName: p_user.firstName,
-        lastName: p_user.lastName,
-        message: message,
+      io.to(pUser.channel).emit('message', {
+        userID: pUser.id,
+        firstName: pUser.firstName,
+        lastName: pUser.lastName,
+        message,
       });
     });
 
-    //when the user exits the channel
-    socket.on("disconnect", () => {
-      //the user is deleted from array of users and a left channel message displayed
-      const p_user = user_Disconnect(socket.id);
+    // when the user exits the channel
+    socket.on('disconnect', () => {
+      // the user is deleted from array of users and a left channel message displayed
+      const pUser = userDisconnect(socket.id);
 
-      if (p_user) {
-        io.to(p_user.channel).emit("message", {
-          userID: p_user.id,
-          firstName: p_user.firstName,
-          lastName: p_user.lastName,
-          message: `${p_user.firstName} has left the channel`,
+      if (pUser) {
+        io.to(pUser.channel).emit('message', {
+          userID: pUser.id,
+          firstName: pUser.firstName,
+          lastName: pUser.lastName,
+          message: `${pUser.firstName} has left the channel`,
         });
       }
     });

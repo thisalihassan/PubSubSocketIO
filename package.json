@@ -7,8 +7,8 @@
     "prestart": "npm run eslint:fix && npm run build",
     "start": "node dist/index.js",
     "dev": "nodemon --exec babel-node -- src/index.js",
-    "build": "babel-node -s -d dist src",
-    "eslint:fix": "eslint --fix src/**/*.js"
+    "build": "babel src -d dist",
+    "eslint:fix": "eslint --fix ./src/**"
   },
   "author": "",
   "license": "ISC",
