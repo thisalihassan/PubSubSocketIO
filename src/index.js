@@ -1,5 +1,7 @@
 import { Server } from 'socket.io';
 import { createServer } from 'http';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { createClient } from 'redis';
 
 const {
   getCurrentUser,
@@ -13,6 +15,17 @@ const io = new Server(httpServer, {
     origin: '*',
   },
 });
+
+const pubClient = createClient({ url: 'redis://3.92.64.201:6379' });
+const subClient = pubClient.duplicate();
+
+Promise.all([pubClient.connect(), subClient.connect()])
+  .then(() => {
+    console.log('Connected');
+    io.adapter(createAdapter(pubClient, subClient));
+    io.listen(8080);
+  })
+  .catch((err) => console.log(err));
 
 // async function sendMessage(socket) {
 //   const data = await pubClient.lRange("messages", 0, -1);
