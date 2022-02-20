@@ -1,7 +1,5 @@
 import { Server } from 'socket.io';
 import { createServer } from 'http';
-import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
 
 const {
   getCurrentUser,
@@ -15,17 +13,6 @@ const io = new Server(httpServer, {
     origin: '*',
   },
 });
-
-const pubClient = createClient({ url: 'redis://3.92.64.201:6379' });
-const subClient = pubClient.duplicate();
-
-Promise.all([pubClient.connect(), subClient.connect()])
-  .then(() => {
-    console.log('Connected');
-    io.adapter(createAdapter(pubClient, subClient));
-    io.listen(8080);
-  })
-  .catch((err) => console.log(err));
 
 // async function sendMessage(socket) {
 //   const data = await pubClient.lRange("messages", 0, -1);
@@ -73,7 +60,7 @@ io.on('connect', (socket) => {
       // gets the channel user and the message sent
       const pUser = getCurrentUser(userID);
 
-      io.to(pUser.channel).emit('message', {
+      io.to(pUser.channel).emit(`message${pUser.channel}`, {
         userID: pUser.id,
         firstName: pUser.firstName,
         lastName: pUser.lastName,
@@ -87,7 +74,7 @@ io.on('connect', (socket) => {
       const pUser = userDisconnect(socket.id);
 
       if (pUser) {
-        io.to(pUser.channel).emit('message', {
+        io.to(pUser.channel).emit(`message${pUser.channel}`, {
           userID: pUser.id,
           firstName: pUser.firstName,
           lastName: pUser.lastName,
