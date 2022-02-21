@@ -35,40 +35,37 @@ Promise.all([pubClient.connect(), subClient.connect()])
 io.on("connect", (socket) => {
   // for a new user joining the channel
   try {
+    socket.on("notify", ({ userID }) => {
+      console.log(userID);
+      socket.join(userID);
+    });
+
+    socket.on(
+      "makeNotification",
+      ({ notification, userID, isFriendRequest = false }) => {
+        // gets the channel user and the message sent
+        try {
+          console.log(notification, userID, isFriendRequest);
+          io.to(userID).emit("notification", {
+            notification,
+            isFriendRequest,
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    );
+
     socket.on("joinRoom", ({ userID, firstName, lastName, channel }) => {
       //* create user
       const pUser = joinUser(userID, firstName, lastName, channel);
-      // const allChannelUsers = getUserchannel(channel);
       socket.join(pUser.channel);
-      // socket.join(userID);
-      // allChannelUsers.forEach(user=>{
-      //   io.to(user.id).emit("channelJoined",{
-      //     userID: pUser.id,
-      //     channel,
-      //   })
-      // })
-
-      // display a welcome message to the user who have joined a channel
-      // socket.emit("message", {
-      //   userID: pUser.id,
-      //   firstName: pUser.firstName,
-      //   message: `Welcome ${pUser.firstName}`,
-      // });
-
-      // displays a joined channel message to all other channel users except that particular user
-      // socket.broadcast.to(pUser.channel).emit("message", {
-      //   userID: pUser.id,
-      //   firstName: pUser.firstName,
-      //   message: `${pUser.firstName} has joined the chat`,
-      // });
     });
     // user sending message
     socket.on("chat", ({ message, userID, channel }) => {
       // gets the channel user and the message sent
       try {
-        console.log(userID, channel)
         const pUser = getCurrentUser(userID, channel);
-        console.log(pUser);
         io.to(pUser.channel).emit(`message${pUser.channel}`, {
           userID: pUser.id,
           firstName: pUser.firstName,
@@ -84,7 +81,7 @@ io.on("connect", (socket) => {
     socket.on("disconnect", () => {
       // the user is deleted from array of users and a left channel message displayed
       try {
-        const pUser = userDisconnect(socket.id, 'something');
+        const pUser = userDisconnect(socket.id, "something");
 
         if (pUser) {
           io.to(pUser.channel).emit(`message${pUser.channel}`, {
